@@ -4,8 +4,6 @@ import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Account = () => {
-  const [userId, setUserId] = useState("");
-  const [token, setToken] = useState("");
   const [name, setName] = useState(null);
   const [phone, setPhone] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,19 +13,16 @@ const Account = () => {
     const localToken = localStorage.getItem("token");
 
     if (localUserId && localToken) {
-      setUserId(localUserId);
-      setToken(localToken);
-
       const fetchData = async () => {
         try {
-          const { data: bookingData } = await supabase
+          const { data } = await supabase
             .from("booking")
-            .select("name, phone")
-            .eq("userId", localUserId)
-            .single();
+            .select("*")
+            .eq("userId", localUserId);
 
-          setName(bookingData?.name || "");
-          setPhone(bookingData?.phone || "");
+          console.log(data);
+          setName(data?.[0].name || "");
+          setPhone(data?.[0].phone || "");
         } catch (error) {
           console.error("Error fetching data:", error);
         } finally {
@@ -37,7 +32,6 @@ const Account = () => {
 
       fetchData();
     } else {
-      // even if not found, stop loading to avoid indefinite spinner
       setLoading(false);
     }
   }, []);
@@ -58,10 +52,12 @@ const Account = () => {
           className="rounded-circle bg-secondary mb-4"
           style={{ width: "80px", height: "80px" }}
         ></div>
-
-        <p><strong>User ID:</strong> {userId}</p>
-        <p><strong>Name:</strong> {name}</p>
-        <p><strong>Phone:</strong> {phone}</p>
+        <p>
+          <strong>Name:</strong> {name}
+        </p>
+        <p>
+          <strong>Phone:</strong> {phone}
+        </p>
       </div>
     </div>
   );
