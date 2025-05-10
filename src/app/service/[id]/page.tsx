@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import dayjs from "dayjs";
 import { useParams, useRouter } from "next/navigation";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -36,13 +36,17 @@ export default function BookingPage() {
   const router = useRouter();
 
   const [days, setDays] = useState<string[]>([]);
-  const [selectedDay, setSelectedDay] = useState<string>(dayjs().format("YYYY-MM-DD"));
+  const [selectedDay, setSelectedDay] = useState<string>(
+    dayjs().format("YYYY-MM-DD")
+  );
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedMaster, setSelectedMaster] = useState<string>("");
   const [services, setServices] = useState<Service[]>([]);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [masters, setMasters] = useState<Master[]>([]);
-  const [availableTimes, setAvailableTimes] = useState<{ time: string; isBooked: boolean }[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<
+    { time: string; isBooked: boolean }[]
+  >([]);
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -50,39 +54,34 @@ export default function BookingPage() {
   const [phone, setPhone] = useState("");
 
   useEffect(() => {
-    const next7Days = Array.from({ length: 7 }, (_, i) => 
+    const next7Days = Array.from({ length: 7 }, (_, i) =>
       dayjs().add(i, "day").format("YYYY-MM-DD")
     );
     setDays(next7Days);
   }, []);
 
-  useEffect(() => {
+  // Memoize fetchServices function to avoid unnecessary re-creations
+  const fetchServices = useCallback(async () => {
     if (id) {
-      fetchServices();
+      const { data, error } = await supabase
+        .from("service")
+        .select("*")
+        .eq("id", id);
+      if (error) console.error(error);
+      else setServices(data as Service[]);
     }
   }, [id]);
+
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]); // Add fetchServices to dependency array
 
   useEffect(() => {
     fetchMasters();
   }, []);
 
-  useEffect(() => {
-    fetchAvailableTimes();
-  }, [selectedMaster, selectedDay]);
-
-  const fetchServices = async () => {
-    const { data, error } = await supabase.from("service").select("*").eq("id", id);
-    if (error) console.error(error);
-    else setServices(data as Service[]);
-  };
-
-  const fetchMasters = async () => {
-    const { data, error } = await supabase.from("master").select("*");
-    if (error) console.error(error);
-    else setMasters(data as Master[]);
-  };
-
-  const fetchAvailableTimes = async () => {
+  // Memoize fetchAvailableTimes function to avoid unnecessary re-creations
+  const fetchAvailableTimes = useCallback(async () => {
     if (!selectedMaster || !selectedDay) {
       setAvailableTimes([]);
       return;
@@ -91,7 +90,6 @@ export default function BookingPage() {
     const master = masters.find((master) => master.name === selectedMaster);
 
     if (master) {
-  
       const { data, error } = await supabase
         .from("booking")
         .select("selectedTime")
@@ -103,7 +101,9 @@ export default function BookingPage() {
         return;
       }
 
-      const bookedTimes = data.map((b: any) => b.selectedTime);
+      const bookedTimes = data.map(
+        (b: { selectedTime: string }) => b.selectedTime
+      );
       const availableTimesWithStatus = master.time.map((time) => ({
         time,
         isBooked: bookedTimes.includes(time),
@@ -111,6 +111,16 @@ export default function BookingPage() {
 
       setAvailableTimes(availableTimesWithStatus);
     }
+  }, [selectedMaster, selectedDay, masters]);
+
+  useEffect(() => {
+    fetchAvailableTimes();
+  }, [selectedMaster, selectedDay, fetchAvailableTimes]);
+
+  const fetchMasters = async () => {
+    const { data, error } = await supabase.from("master").select("*");
+    if (error) console.error(error);
+    else setMasters(data as Master[]);
   };
 
   const handleServiceSelect = (service: Service) => {
@@ -166,7 +176,11 @@ export default function BookingPage() {
         {days.map((day) => (
           <button
             key={day}
-            className={`btn ${selectedDay === day ? "btn-primary text-white" : "btn-outline-secondary"} flex-shrink-0`}
+            className={`btn ${
+              selectedDay === day
+                ? "btn-primary text-white"
+                : "btn-outline-secondary"
+            } flex-shrink-0`}
             style={{ minWidth: "120px" }}
             onClick={() => setSelectedDay(day)}
           >
@@ -286,18 +300,20 @@ export default function BookingPage() {
                     className="form-control"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Your phone"
+                    placeholder="Your phone number"
                   />
                 </div>
               </div>
               <div className="modal-footer">
                 <button
+                  type="button"
                   className="btn btn-secondary"
                   onClick={() => setShowModal(false)}
                 >
                   Close
                 </button>
                 <button
+                  type="button"
                   className="btn btn-primary"
                   onClick={handleConfirmBooking}
                 >
@@ -309,8 +325,8 @@ export default function BookingPage() {
         </div>
       )}
 
-      {/* Toast container */}
-      <ToastContainer position="top-right" autoClose={2000} />
+      {/* Toast notifications */}
+      <ToastContainer />
     </div>
   );
 }
