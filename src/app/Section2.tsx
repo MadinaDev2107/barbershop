@@ -30,7 +30,7 @@ export default function HaircutShopMobile() {
   return (
     <div className="p-4 md:hidden">
       <h2 className="text-xl font-bold text-center mb-4 text-green-700">
-        💇‍♂️ Salon Services
+        Barberbook
       </h2>
       <div className="grid grid-cols-1 gap-4">
         {services.map((service) => (
@@ -47,8 +47,6 @@ export default function HaircutShopMobile() {
             />
             <div className="p-3">
               <h4 className="font-semibold text-lg mb-1">{service.name}</h4>
-              <p className="text-green-600 font-bold">{service.price} $</p>
-              <p className="text-sm text-gray-500">⏱ {service.time}</p>
             </div>
           </div>
         ))}
