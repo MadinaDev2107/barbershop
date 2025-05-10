@@ -37,19 +37,16 @@ const Account = () => {
 
       fetchData();
     } else {
+      // even if not found, stop loading to avoid indefinite spinner
       setLoading(false);
     }
   }, []);
 
-  if (loading) {
+  if (loading || name === null || phone === null) {
     return (
-      <div className="d-flex align-items-center mt-5">
-        <strong>Loading...</strong>
-        <div
-          className="spinner-border ms-auto"
-          role="status"
-          aria-hidden="true"
-        ></div>
+      <div className="d-flex align-items-center justify-content-center vh-100">
+        <strong className="me-2">Loading...</strong>
+        <div className="spinner-border" role="status" aria-hidden="true"></div>
       </div>
     );
   }
@@ -62,19 +59,10 @@ const Account = () => {
           style={{ width: "80px", height: "80px" }}
         ></div>
 
-        <p>
-          <strong>User ID:</strong> {userId}
-        </p>
-        <p>
-        
-        <p>
-          <strong>Name:</strong> {name}
-        </p>
-        <p>
-          <strong>Phone:</strong> {phone}
-        </p>
+        <p><strong>User ID:</strong> {userId}</p>
+        <p><strong>Name:</strong> {name}</p>
+        <p><strong>Phone:</strong> {phone}</p>
       </div>
-    
     </div>
   );
 };
