@@ -1,16 +1,7 @@
-"use client";
-import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { FaBars, FaUser } from "react-icons/fa";
 
 const Header = () => {
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    setToken(savedToken);
-  }, []);
-
   const mobileNavItems = [
     {
       name: "Menu",
@@ -19,7 +10,7 @@ const Header = () => {
     },
     {
       name: "Profile",
-      href: token ? "/profile" : "/login",
+      href: "/profile",
       icon: <FaUser className="w-5 h-5 text-green-600" />,
     },
   ];
