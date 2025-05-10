@@ -66,8 +66,7 @@ const Account = () => {
           <strong>User ID:</strong> {userId}
         </p>
         <p>
-          <strong>Token:</strong> {token}
-        </p>
+        
         <p>
           <strong>Name:</strong> {name}
         </p>
